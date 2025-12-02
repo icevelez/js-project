@@ -4,24 +4,40 @@ import { connectRemote } from "./remote.js";
 /** @type {typeof remote_functions} */
 const Remote = connectRemote("/api/remote");
 
-const headerEl = document.getElementById("h1El");
-const data = await Remote.greetings({ age: 25, name: "ice" }, new File(['sefsfse'], 'hello_world.txt'));
+/** @type {HTMLHeadingElement} */
+const headerEl = document.getElementById("h1_el");
+/** @type {HTMLButtonElement} */
+const buttonEl = document.getElementById("upload_button_el");
+/** @type {HTMLInputElement} */
+const fileInputEl = document.getElementById("file_input_el");
 
-console.log("greetings:", data);
-console.log("server add number:", await Remote.add_numbers(69, 69));
+buttonEl.addEventListener('click', async () => {
+    const fileList = fileInputEl.files;
+    if (!fileList) return;
 
-headerEl.textContent = data.message;
-console.log("server date:", data.date);
+    const file = fileList[0];
+    if (!file) return;
 
-let count = 0;
-const maxCount = 5;
+    await Remote.upload_file(file);
+})
 
-const recurseCall = async () => {
-    if (count >= maxCount) return;
+// const data = await Remote.greetings({ age: 25, name: "ice" }, new File(['sefsfse'], 'hello_world.txt'));
 
-    await Remote.console_log("Hello from client counter: " + count);
-    count++;
-    setTimeout(recurseCall, 1000);
-}
+// console.log("greetings:", data);
+// console.log("server add number:", await Remote.add_numbers(69, 69));
 
-recurseCall()
+// headerEl.textContent = data.message;
+// console.log("server date:", data.date);
+
+// let count = 0;
+// const maxCount = 5;
+
+// const recurseCall = async () => {
+//     if (count > maxCount) return;
+
+//     await Remote.console_log("Hello from client counter: " + count);
+//     count++;
+//     setTimeout(recurseCall, 1000);
+// }
+
+// recurseCall()

@@ -22,5 +22,13 @@ export const remote_functions = {
     add_numbers: async (a, b) => {
         console.log(a, b, a + b);
         return a + b;
+    },
+    /**
+     * @param {File} file
+     */
+    upload_file: async (file) => {
+        console.log("Uploaded File:", file);
+
+        return "Upload Sucessful!";
     }
 };
