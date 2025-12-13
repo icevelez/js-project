@@ -30,5 +30,5 @@ export const remote_functions = {
         console.log("Uploaded File:", file);
 
         return "Upload Sucessful!";
-    }
+    },
 };
