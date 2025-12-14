@@ -18,7 +18,7 @@ buttonEl.addEventListener('click', async () => {
     const file = fileList[0];
     if (!file) return;
 
-    const message = await REMOTE.upload_file(file);
+    const message = await REMOTE.upload_file(file, file, file);
     console.log(message);
 })
 

@@ -1,15 +1,10 @@
 import http from 'http';
 
-/**
- * @typedef {{ [key:string] : Function }} RemoteObject
- */
-
-/** @type {(remote_fns:RemoteObject) => RemoteObject} */
-export const remoteInstance = (remote_fns = {}) => remote_fns;
+const byte_to_megabyte = (byte) => byte * 1024 * 1024;
 
 /**
- * @param {RemoteObject} remote_fns
- * @param {{ max_field_size_in_mb : number }} config
+ * @param {{ [key:string] : () => Promise<any> }} remote_fns
+ * @param {{ max_request_size_in_mb : number, max_field_size_in_mb : number }} config
  */
 export function remoteFunction(remote_fns, config) {
     /**
@@ -50,7 +45,7 @@ export function remoteFunction(remote_fns, config) {
         }
 
         try {
-            const fields = await parseMultipart(req, boundary, func_param_data_types, (config?.max_field_size_in_mb || 0) * (1024 * 1024));
+            const fields = await parseMultipart(req, boundary, func_param_data_types, byte_to_megabyte(config?.max_request_size_in_mb || 0), byte_to_megabyte(config?.max_field_size_in_mb || 0));
             let response = func(...fields);
             if (response instanceof Promise) response = await response;
             res.setHeader('Parse-Type', response && typeof response === "object" ? "json" : "text");
@@ -70,9 +65,10 @@ export function remoteFunction(remote_fns, config) {
  * @param {Readable} stream
  * @param {string} boundary
  * @param {string[]} func_param_data_types
+ * @param {number} max_request_size
  * @param {number} max_body_size
  */
-export function parseMultipart(stream, boundary, func_param_data_types, max_body_size) {
+export function parseMultipart(stream, boundary, func_param_data_types, max_request_size, max_body_size) {
     return new Promise((resolve, reject) => {
         const dashBoundary = "--" + boundary;
         const boundaryBuffer = Buffer.from(dashBoundary);
@@ -87,6 +83,8 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_body
             filename: null,
             data: []
         };
+
+        let total_body_size = 0;
 
         function parseHeaders(headerText) {
             const out = {};
@@ -114,9 +112,20 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_body
         function finishPart() {
             if (!current.name) return;
 
+            const max_request_size_in_mb = max_request_size / (1024 * 1024);
+            const max_body_size_in_mb = max_body_size / (1024 * 1024);
+
             const data = Buffer.concat(current.data);
+            total_body_size += data.byteLength;
+
+            if (max_request_size > 0 && total_body_size >= max_request_size) {
+                const error_message = `maximum request size (${max_request_size_in_mb.toFixed(2)}MB) reached`;
+                console.error(error_message);
+                return reject(error_message);
+            }
+
             if (max_body_size > 0 && data.byteLength >= max_body_size) {
-                const error_message = `maximum size (${(max_body_size / (1024 * 1024)).toFixed(2)}MB) of the request body reached`;
+                const error_message = `maximum field size (${max_body_size_in_mb.toFixed(2)}MB) reached`;
                 console.error(error_message);
                 return reject(error_message);
             }
@@ -140,42 +149,28 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_body
             while (true) {
                 if (state === "SEARCH_PART") {
                     boundaryIndex = buffer.indexOf(boundaryBuffer);
-                    if (boundaryIndex === -1) {
-                        // Boundary not found yet, wait for more data
-                        return;
-                    }
-                    // Remove up to boundary + CRLF
+                    if (boundaryIndex === -1) return;
                     buffer = buffer.subarray(boundaryIndex + boundaryBuffer.length);
-                    if (buffer.subarray(0, 2).toString() === "--") {
-                        // End
-                        resolve(fields);
-                        return;
-                    }
-                    if (buffer.subarray(0, 2).toString() === "\r\n") {
-                        buffer = buffer.subarray(2);
-                    }
+                    if (buffer.subarray(0, 2).toString() === "--") return resolve(fields);
+                    if (buffer.subarray(0, 2).toString() === "\r\n") buffer = buffer.subarray(2);
                     headers = "";
                     state = "HEADERS";
                 }
 
                 if (state === "HEADERS") {
                     const headerEnd = buffer.indexOf("\r\n\r\n");
-                    if (headerEnd === -1) {
-                        return; // need more data
-                    }
+                    if (headerEnd === -1) return; // need more data
 
                     headers = buffer.subarray(0, headerEnd).toString();
                     buffer = buffer.subarray(headerEnd + 4);
 
-                    const headerObj = parseHeaders(headers);
-                    setupPart(headerObj);
+                    setupPart(parseHeaders(headers));
                     state = "BODY";
                 }
 
                 if (state === "BODY") {
                     // Look for the next boundary
                     const nextBoundaryPos = buffer.indexOf("\r\n" + dashBoundary);
-
                     if (nextBoundaryPos === -1) {
                         // all buffer is body data for now
                         current.data.push(buffer);
@@ -193,25 +188,18 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_body
                     buffer = buffer.subarray(nextBoundaryPos + 2); // skip leading CRLF
 
                     // Detect -- at end
-                    if (buffer.indexOf(endBoundaryBuffer) === 0) {
-                        resolve(fields);
-                        return;
-                    }
+                    if (buffer.indexOf(endBoundaryBuffer) === 0) return resolve(fields);
 
                     // Skip boundary + CRLF
                     buffer = buffer.subarray(boundaryBuffer.length);
-                    if (buffer.subarray(0, 2).toString() === "\r\n")
-                        buffer = buffer.subarray(2);
+                    if (buffer.subarray(0, 2).toString() === "\r\n") buffer = buffer.subarray(2);
 
                     state = "HEADERS";
                 }
             }
         });
 
-        stream.on("end", () => {
-            resolve(fields);
-        });
-
+        stream.on("end", () => resolve(fields));
         stream.on("error", reject);
     });
 }

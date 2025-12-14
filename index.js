@@ -5,5 +5,5 @@ import { remote_functions } from "./remote_api.js";
 
 const mux = new HttpMux();
 mux.handle("/", serve('public'));
-mux.handle("/api/remote", remoteFunction(remote_functions, { max_field_size_in_mb: 1 }));
+mux.handle("/api/remote", remoteFunction(remote_functions, { max_request_size_in_mb: 1 }));
 mux.serve(3000);

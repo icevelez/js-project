@@ -17,7 +17,6 @@ export const remote_functions = {
     /**
      * @param {number} a
      * @param {number} b
-     * @returns
      */
     add_numbers: async (a, b) => {
         console.log(a, b, a + b);
