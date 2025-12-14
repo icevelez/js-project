@@ -23,7 +23,7 @@ export default class {
         this.#auth = auth;
     }
 
-    create_application = async (data, ...args) => {
+    example_function = async (data, ...args) => {
         const user_data = this.#auth.getContext();
         if (!user_data) throw new Error("no user. unauthorized");
 
@@ -31,7 +31,7 @@ export default class {
 
         console.log(data, args);
 
-        return "successful! " + user_data + " " + JSON.stringify(data);
+        return { message: `Hello from server ${user_data}` };
     }
 
     /**

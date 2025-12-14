@@ -3,10 +3,10 @@ import { connectRemote } from "./remote.js";
 /** @import RemoteFunction from '../remote_api.js' */
 /** @type {RemoteFunction} */
 const REMOTE = connectRemote("/api/remote", {
-    'x-auth': 'this_is_an_example_jwt'
+    'x-auth': 'jeff'
 });
 
-REMOTE.create_application({
+const data = await REMOTE.example_function({
     example_data: "hello_world",
     test_map: new Map(),
     test_set: new Set([1, 2, 3, 4, 5]),
@@ -19,3 +19,4 @@ REMOTE.create_application({
     1251352,
     { 'x': 'hello' },
 )
+console.log(data);

@@ -4,9 +4,9 @@ const encode = (obj) => JSON.stringify(obj, (k, v) => serialize(obj[k] || v));
 async function remoteFetch(fn_name, headers, args, remote_endpoint) {
     const formData = new FormData();
     for (let i = 0; i < args.length; i++) {
-        args[i] = serialize(args[i]);
-        const is_jsonable = args[i] && Object.getPrototypeOf(args[i]) === Object.prototype || Array.isArray(args[i]);
-        formData.append(i, is_jsonable ? new File([encode(args[i])], '.json') : args[i]);
+        const arg = serialize(args[i]);
+        const is_jsonable = arg && Object.getPrototypeOf(arg) === Object.prototype || Array.isArray(arg);
+        formData.append(i, is_jsonable ? new File([encode(arg)], '.json') : arg);
     }
 
     const response = await fetch(remote_endpoint, {
@@ -22,7 +22,7 @@ async function remoteFetch(fn_name, headers, args, remote_endpoint) {
     if (response.status >= 400) throw new Error(await response.text());
     if (response.status < 200 || response.status > 299 || response.status === 204) return;
 
-    const data = await response[response.headers['content-type'] === 'application/json' ? 'json' : 'text']();
+    const data = await response[response.headers.get('content-type') === 'application/json' ? 'json' : 'text']();
     const response_type = response.headers.get("type");
 
     return (response_type === "number") ? +data : (response_type === "boolean") ? Boolean(data) : data;
