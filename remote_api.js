@@ -23,16 +23,15 @@ export default class {
         this.#auth = auth;
     }
 
-    example_function = async (data, ...args) => {
-        const user_data = this.#auth.getContext();
-        if (!user_data) throw new Error("no user. unauthorized");
-
-        // await this.#database.query("SOME SQL INSERT EXAMPLE", data);
-
-        console.log(data, args);
+    /**
+     * @param {File} file
+     * @param {Date} date
+     */
+    example_function = async (file, date) => {
+        console.log(file, date);
 
         return {
-            message: `Hello from server ${user_data}`,
+            message: `Hello from server`,
             map: new Map([[1, "this is an example"], [2, "another example xyz"]]),
             file: new File(['hello'], 'hello_word.txt'),
             test_data: new Date(),
