@@ -1,6 +1,6 @@
-/** @import { Request, Response } from '../lib/http' */
-
 import { randomUUID } from 'crypto';
+
+/** @import { Request, Response } from '../lib/http' */
 
 const byte_to_megabyte = (byte) => byte * 1024 * 1024;
 
@@ -45,10 +45,9 @@ export function remoteFunction(remote_fns, config) {
 
             res.setHeader('Data-Type', response ? typeof response : "text");
             res.setHeader('Content-type', response instanceof File || response instanceof Blob ? "application/octet-stream" : typeof response === "object" ? "application/json" : "plain/text")
-            res.end(encoded_response);
+            res.end(encoded_response === true ? `${encoded_response}` : encoded_response);
         } catch (error) {
-            res.status(500).end(error.toString());
-            return;
+            return (res.is_sent) ? console.error(error) : res.status(500).end(error.toString());
         }
     }
 }

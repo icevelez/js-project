@@ -1,20 +1,18 @@
-/** @import { createAuth } from "./lib/auth.js" */
-/** @import { Pool } from "pg"; */
+/** @import { createContext } from "./lib/context.js" */
+/** @import { DatabaseSync } from "node:sqlite"; */
 
 /**
  * @template {any} T
  */
 export default class {
 
-    /** @type {Pool} */
     #database;
 
-    /** @type {ReturnType<typeof createAuth<any>>['context']} */
     #auth;
 
     /**
      * @param {Pool} database
-     * @param {ReturnType<typeof createAuth<T>>['context']} auth
+     * @param {ReturnType<typeof createContext<T>>[1]} auth
      */
     constructor(database, auth) {
         if (!database) throw new Error("no database adaptor");

@@ -1,17 +1,13 @@
-import { Pool } from "pg";
+import { DatabaseSync } from "node:sqlite";
 import { HttpMux } from "./lib/http.js";
-import { createAuth } from "./lib/auth.js";
+import { createContext } from "./lib/context.js";
 import { serve } from "./middleware/serve.js";
 import { remoteFunction } from "./middleware/remote.js";
 import Remote from "./remote_api.js";
 
-const database = new Pool({
-    host: 'localhost',
-    user: 'pg',
-    password: 'pg'
-});
+const database = new DatabaseSync(":memmory:");
 
-const auth = createAuth((request, response) => {
+const [authContextMiddle, getAuthContext] = createContext((request, response) => {
     const auth_key = request.headers['x-auth'] || "";
     if (auth_key) return `${request.headers['x-auth']}`;
     response.writeHead(401);
@@ -19,15 +15,13 @@ const auth = createAuth((request, response) => {
     return "";
 })
 
-const remote_functions = new Remote(database, auth.context);
+const remote_functions = new Remote(database, getAuthContext);
 
 const rpcMux = new HttpMux();
-rpcMux.handle("/api/remote", auth.middleware);
+rpcMux.handle("/api/remote", authContextMiddle);
 rpcMux.handle("/api/remote", remoteFunction(remote_functions, { max_request_size_in_mb: 1 }));
 
 const mux = new HttpMux();
 mux.handle("/", serve('public'));
 mux.handle("/", rpcMux.strip_prefix());
-
-mux.serve(3001)
 mux.serveTLS("ssl/default.key", "ssl/default.cert", 3000);
