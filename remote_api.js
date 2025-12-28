@@ -1,5 +1,5 @@
 /** @import { createContext } from "./lib/context.js" */
-/** @import { DatabaseSync } from "node:sqlite"; */
+/** @import { Database } from "bun:sqlite"; */
 
 /**
  * @template {any} T
@@ -11,7 +11,7 @@ export default class {
     #auth;
 
     /**
-     * @param {Pool} database
+     * @param {Database} database
      * @param {ReturnType<typeof createContext<T>>[1]} auth
      */
     constructor(database, auth) {

@@ -1,4 +1,4 @@
-/** @import { Request } from '../lib/http' */
+/** @import { Request } from '../lib/http.node.js' */
 
 import { Logger } from '../lib/colorful_log.js';
 

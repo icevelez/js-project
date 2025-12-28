@@ -1,43 +1,24 @@
-/** @import { Request, Response } from '../lib/http' */
-
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.join(path.dirname(__filename), "/../");
 
 /**
  * @param {string} dir
  */
 export function serve(dir) {
+    const __dirname = path.join(process.cwd(), dir);
+
     /**
      * @param {Request} req
-     * @param {Response} res
      */
-    return async (req, res) => {
+    return async (req) => {
         if (req.method !== 'GET') return;
 
-        const url = req.url.split("?")[0];
-        let filePath = path.join(__dirname, "/", dir, (url === '/') ? 'index.html' : url);
-
-        if (!filePath.startsWith(__dirname)) return res.status(403).end("Forbidden");
+        const filePath = path.join(__dirname, (req.path === '/') ? 'index.html' : req.path);
+        if (!filePath.startsWith(__dirname)) return new Response("forbidden", { status: 403 });
 
         try {
-            const file = await fs.readFile(filePath);
-            const ext = path.extname(filePath).toLowerCase();
-            const contentTypes = {
-                '.html': 'text/html',
-                '.css': 'text/css',
-                '.js': 'text/javascript',
-                '.json': 'application/json',
-                '.png': 'image/png',
-                '.jpg': 'image/jpeg',
-                '.svg': 'image/svg+xml',
-                '.txt': 'text/plain'
-            };
-
-            res.status(200).setHeader('Content-Type', contentTypes[ext] ?? 'application/octet-stream').end(file);
+            const file = Bun.file(filePath);
+            return new Response(file)
         } catch (error) {
             // ignore non-existent files
             // console.error(error);
