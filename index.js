@@ -5,7 +5,7 @@ import { serve } from "./middleware/serve.js";
 import { remoteFunction } from "./middleware/remote.js";
 import Remote from "./remote_api.js";
 
-const database = new DatabaseSync(":memmory:");
+const database = new DatabaseSync(":memory:");
 
 const [authContextMiddle, getAuthContext] = createContext((request, response) => {
     const auth_key = request.headers['x-auth'] || "";
