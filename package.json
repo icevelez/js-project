@@ -1,12 +1,12 @@
 {
-    "name": "remote-function",
-    "version": "1.0.0",
+    "name": "remote-function-bun",
+    "version": "0.1.0",
+    "author": "John Iceberg Velez",
     "main": "index.js",
-    "type": "module",
+    "description": "",
+    "license": "MIT",
     "scripts": {
         "dev": "bun --watch index.js"
     },
-    "author": "John Iceberg Velez",
-    "license": "MIT",
-    "description": ""
+    "type": "module"
 }

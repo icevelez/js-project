@@ -1,2 +1,7 @@
 /node_modules
 /ssl
+/public/assets/
+package-lock.json
+bun.lock
+/public/tailwind4.build.css
+.env
