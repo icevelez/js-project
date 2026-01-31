@@ -1,0 +1,20 @@
+<script runat="server">
+    console.log("Logged once upon first request");
+
+    export default function(request) {
+        console.log("Logged per request");
+
+        return {
+            name : request.searchparams.get("name") || "No Name"
+        }
+    }
+</script>
+<html>
+    <head>
+        <title>Server Rendered Test Page</title>
+    </head>
+    <body>
+        <h1>Hello Welcome! {{ data.name }}</h1>
+        <p>use the search param to add name like "?name=your_name"</p>
+    </body>
+</html>
