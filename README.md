@@ -67,7 +67,7 @@ import { connectRemote } from "./remote.js";
 
 /** @import ExampleRemote from '../remote_example.js' */
 /** @type {ExampleRemote} */
-const REMOTE = connectRemote("/remote/api/example");
+const REMOTE = connectRemote("/remote");
 
 const result = await REMOTE.add_number(4, 20); 
 console.log(result);        // 24;
